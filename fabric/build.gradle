@@ -1,5 +1,5 @@
 plugins {
-    id "com.github.johnrengelman.shadow" version "7.1.2"
+    id "com.gradleup.shadow" version "9.6.1"
     id "org.jetbrains.kotlin.jvm"
     id "com.matthewprenger.cursegradle"
     id "com.modrinth.minotaur"
@@ -7,10 +7,10 @@ plugins {
 
 apply from: '../gradle-scripts/publish-curseforge.gradle'
 
-architectury {
-    platformSetupLoomIde()
-    fabric()
-}
+// architectury {
+//     platformSetupLoomIde()
+//     fabric()
+// }
 
 configurations {
     common
@@ -34,10 +34,10 @@ dependencies {
     include(implementation(annotationProcessor("io.github.llamalad7:mixinextras-fabric:0.5.0")))
     modImplementation("net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}")
 
-    common(project(path: ":common", configuration: "namedElements")) {
+    common(project(path: ":common")) {
         transitive = false
     }
-    shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) {
+    shadowCommon(project(path: ":common")) {
         transitive = false
     }
 
@@ -161,7 +161,7 @@ shadowJar {
     exclude "net/optifine/**"
 }
 
-remapJar {
+tasks.matching { it.name == "remapJar" }.configureEach {
     input.set shadowJar.archiveFile
     dependsOn shadowJar
     archiveClassifier.set null

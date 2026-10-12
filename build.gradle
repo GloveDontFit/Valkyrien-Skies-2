@@ -16,7 +16,7 @@ plugins {
     id "dev.architectury.loom" version "1.17.493" apply false
     id 'io.github.juuxel.loom-vineflower' version '1.11.0' apply false
     // Kotlin
-    id "org.jetbrains.kotlin.jvm" version "2.0.0" apply false
+    id "org.jetbrains.kotlin.jvm" version "2.1.10" apply false
     id 'com.matthewprenger.cursegradle' version '1.4.0' apply false
     id "com.modrinth.minotaur" version "2.4.3" apply false
 }
@@ -79,10 +79,6 @@ subprojects {
         maybeCreate("modCompileOnly").extendsFrom(compileOnly)
         maybeCreate("modRuntimeOnly").extendsFrom(runtimeOnly)
         maybeCreate("modApi").extendsFrom(api)
-    }
-
-    tasks.register("remapJar", Jar) {
-        archiveClassifier.set("remap")
     }
 
     repositories {

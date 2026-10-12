@@ -23,7 +23,8 @@ curseforge {
             addGameVersion project.minecraft_version
             addGameVersion project.loader_platform
 
-            mainArtifact(remapJar.archiveFile.get().asFile) {
+            def artifactFile = (tasks.findByName("remapJar") ?: tasks.named("jar").get()).archiveFile.get().asFile
+            mainArtifact(artifactFile) {
                 relations {
                     if (project.loader_platform == 'Forge') {
                         requiredDependency 'kotlin-for-forge'
@@ -63,7 +64,7 @@ modrinth {
     versionName = fileDisplayName
     changelog = rootProject.file('changelog.md').text
     versionNumber = "${project.minecraft_version}-${project.loader_platform.toLowerCase()}-${project.version}"
-    uploadFile = remapJar
+    uploadFile = tasks.findByName("remapJar") ?: tasks.named("jar")
     gameVersions = [project.minecraft_version]
     loaders = [project.loader_platform.toLowerCase()]
 
