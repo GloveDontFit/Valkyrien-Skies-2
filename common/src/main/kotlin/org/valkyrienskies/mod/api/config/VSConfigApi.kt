@@ -1,12 +1,73 @@
 package org.valkyrienskies.mod.api.config
 
-import net.neoforged.neoforge.common.ModConfigSpec
 import org.valkyrienskies.core.impl.api_impl.config.VsiConfigModelImpl
 import org.valkyrienskies.core.internal.config.VsiConfigModel
 import org.valkyrienskies.core.internal.config.VsiConfigModelCategory
 import org.valkyrienskies.core.internal.config.VsiConfigModelEntry
 import org.valkyrienskies.mod.common.config.ConfigType
 import org.valkyrienskies.mod.common.hooks.VSGameEvents.ConfigUpdateEntry
+
+object VSConfigApi {
+
+    @JvmStatic
+    fun buildVSConfigModel(annotatedConfigObject: Any) =
+        VsiConfigModelImpl.build(annotatedConfigObject)
+
+    /**
+     * Walks the VsiConfigModel and pulls each entry's current value from [getByKey] (which
+     * is typically backed by a NightConfig CommentedConfig on the platform side), converting
+     * types as needed and writing through to each entry's [VsiConfigModelEntry.setValue].
+     * This is what propagates user edits from the TOML file back into the in-memory Kotlin vars.
+     */
+    fun VsiConfigModel.applyToModel(
+        getByKey: (String) -> Any?,
+        configType: ConfigType,
+        updatedEntries: MutableSet<ConfigUpdateEntry>
+    ) {
+        root.forEachEntry { category, node ->
+            val key = (category + node.name).joinToString(".")
+            val newValue = getByKey(key) ?: return@forEachEntry
+            val defaultValue = node.default ?: return@forEachEntry
+            val convertedValue = when {
+                // Forge/NightConfig stores Floats as Doubles; coerce on read-back.
+                defaultValue is Float && newValue is Double -> newValue.toFloat()
+                // Enums round-trip through the TOML as their name string.
+                defaultValue is Enum<*> -> when (newValue) {
+                    is String -> {
+                        @Suppress("UNCHECKED_CAST")
+                        val constants = defaultValue.declaringJavaClass.enumConstants as Array<Enum<*>>
+                        constants.find { it.name == newValue }
+                    }
+                    is Enum<*> -> newValue
+                    else -> null
+                }
+                defaultValue::class.isInstance(newValue) -> newValue
+                else -> null
+            } ?: return@forEachEntry
+
+            if (convertedValue != node.getValue()) {
+                updatedEntries.add(ConfigUpdateEntry(configType, category, node.name))
+            }
+            @Suppress("UNCHECKED_CAST")
+            (node as VsiConfigModelEntry<Any>).setValue(convertedValue)
+        }
+    }
+
+    private fun VsiConfigModelCategory.forEachEntry(
+        category: List<String> = emptyList(),
+        callback: (List<String>, VsiConfigModelEntry<*>) -> Unit
+    ) {
+        for (node in children) {
+            val value = node.value
+            if (value is VsiConfigModelEntry<*>) {
+                callback(category, value)
+            } else if (value is VsiConfigModelCategory) {
+                value.forEachEntry(category + value.title, callback)
+            }
+        }
+    }
+}
+
 
 object VSConfigApi {
 
