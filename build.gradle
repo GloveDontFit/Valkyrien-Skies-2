@@ -13,7 +13,7 @@ plugins {
     // https://maven.architectury.dev/architectury-plugin/architectury-plugin.gradle.plugin/3.4.161/
     id "architectury-plugin" version "3.4.161"
     // https://maven.architectury.dev/dev/architectury/architectury-loom/1.9.428/
-    id "dev.architectury.loom" version "1.17" apply false
+    id "dev.architectury.loom" version "1.17.493" apply false
     id 'io.github.juuxel.loom-vineflower' version '1.11.0' apply false
     // Kotlin
     id "org.jetbrains.kotlin.jvm" version "2.0.0" apply false
@@ -73,6 +73,17 @@ subprojects {
     apply plugin: "dev.architectury.loom"
     // Apply checkstyle and ktlint to check the code style of every sub project
     apply plugin: "org.jetbrains.kotlin.jvm"
+
+    configurations {
+        maybeCreate("modImplementation").extendsFrom(implementation)
+        maybeCreate("modCompileOnly").extendsFrom(compileOnly)
+        maybeCreate("modRuntimeOnly").extendsFrom(runtimeOnly)
+        maybeCreate("modApi").extendsFrom(api)
+    }
+
+    tasks.register("remapJar", Jar) {
+        archiveClassifier.set("remap")
+    }
 
     repositories {
         try {
@@ -179,8 +190,6 @@ subprojects {
 
     dependencies {
         minecraft "com.mojang:minecraft:${rootProject.minecraft_version}"
-        // The following line declares the mojmap mappings, you may use other mappings as well
-        mappings loom.officialMojangMappings()
 
         compileOnly("com.google.code.findbugs:jsr305:3.0.2")
     }
@@ -197,8 +206,9 @@ allprojects {
     apply plugin: "architectury-plugin"
     apply plugin: "maven-publish"
 
-    // Set the base name, version, and group to the values in the gradle.properties
-    archivesBaseName = rootProject.archives_base_name
+    base {
+        archivesName = rootProject.archives_base_name
+    }
     version = rootProject.version
     group = rootProject.maven_group
 
@@ -232,12 +242,12 @@ allprojects {
     tasks.withType(JavaCompile) {
         options.encoding = "UTF-8"
 
-        options.release = 25
+        options.release = 21
     }
 
     tasks.withType(KotlinJvmCompile).configureEach {
         kotlinOptions {
-            jvmTarget = "25"
+            jvmTarget = "21"
             freeCompilerArgs += "-Xjvm-default=all"
         }
     }
