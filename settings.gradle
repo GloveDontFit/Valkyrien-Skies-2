@@ -41,7 +41,9 @@ dependencyResolutionManagement {
 
 include("common")
 include("fabric")
-include("forge")
+if (providers.gradleProperty("enabled_platforms").orNull?.contains("forge") == true || providers.gradleProperty("enabled_platforms").orNull?.contains("neoforge") == true) {
+    include("forge")
+}
 
 try {
     def core = file("./vs-core")

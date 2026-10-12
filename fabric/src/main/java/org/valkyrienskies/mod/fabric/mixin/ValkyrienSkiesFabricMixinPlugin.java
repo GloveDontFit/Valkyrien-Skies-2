@@ -28,10 +28,28 @@ public class ValkyrienSkiesFabricMixinPlugin implements IMixinConfigPlugin {
         return "";
     }
 
+    private static boolean isModLoaded(final String modId) {
+        try {
+            return net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded(modId);
+        } catch (final Throwable t) {
+            return false;
+        }
+    }
+
     @Override
     public boolean shouldApplyMixin(final String s, final String mixinClassName) {
-        final boolean isMixinBoosterLoaded = classExists("io.github.steelwoolmc.mixintransmog.MixinModlauncherRemapper");
-
+        if (mixinClassName.contains(".compat.cc_restitched.") && !isModLoaded("computercraft")) {
+            return false;
+        }
+        if (mixinClassName.contains(".compat.sodium.") && !isModLoaded("sodium")) {
+            return false;
+        }
+        if (mixinClassName.contains(".compat.connectiblechains.") && !isModLoaded("connectiblechains")) {
+            return false;
+        }
+        if (mixinClassName.contains(".compat.emf.") && !isModLoaded("entity_model_features")) {
+            return false;
+        }
         if (mixinClassName.contains("org.valkyrienskies.mod.fabric.mixin.compat.old_create")) {
             return LoadedMods.getOldCreate();
         }

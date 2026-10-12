@@ -1,7 +1,7 @@
 {
   "required": true,
   "package": "org.valkyrienskies.mod.mixin",
-  "compatibilityLevel": "JAVA_17",
+  "compatibilityLevel": "JAVA_21",
   "plugin": "org.valkyrienskies.mod.mixin.ValkyrienCommonMixinConfigPlugin",
   "mixins": [
     "accessors.entity.EntityAccessor",
